@@ -37,9 +37,6 @@ import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 
-logging.basicConfig()
-logger.setLevel('INFO')
-
 CIFAR_FILENAME = 'cifar-10-python.tar.gz'
 CIFAR_DOWNLOAD_URL = 'https://www.cs.toronto.edu/~kriz/' + CIFAR_FILENAME
 CIFAR_LOCAL_FOLDER = 'cifar-10-batches-py'
@@ -127,7 +124,9 @@ def convert_to_tfrecord(input_files, output_file):
                 record_writer.write(example.SerializeToString())
 
 
-def main(data_dir):
+def main(data_dir, logging_level='INFO'):
+    logging.basicConfig()
+    logger.setLevel(logging_level)
     logger.info(f'Download from {CIFAR_DOWNLOAD_URL} and extract to {data_dir}.')
     download_and_extract(data_dir)
     file_names = _get_file_names()
@@ -151,6 +150,11 @@ if __name__ == '__main__':
         type=str,
         default='',
         help='Directory to download and extract CIFAR-10 to.')
+    parser.add_argument(
+        '--log-level',
+        type=str,
+        default='',
+        help='Level of logging, could be (DEBUG, INFO, WARNING and ERROR)')
 
     args = parser.parse_args()
-    main(args.data_dir)
+    main(args.data_dir, args.log_level)
