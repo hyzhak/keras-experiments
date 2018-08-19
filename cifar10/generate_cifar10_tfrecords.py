@@ -21,9 +21,9 @@ https://www.cs.toronto.edu/~kriz/cifar.html.
 
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function
 
 import argparse
+import logging
 import os
 import shutil
 import sys
@@ -32,15 +32,20 @@ import urllib
 import tarfile
 from six.moves import cPickle as pickle
 from six.moves import xrange  # pylint: disable=redefined-builtin
-from tenacity import retry
+from tenacity import after_log, retry
 import tensorflow as tf
+
+logger = logging.getLogger(__name__)
+
+logging.basicConfig()
+logger.setLevel('INFO')
 
 CIFAR_FILENAME = 'cifar-10-python.tar.gz'
 CIFAR_DOWNLOAD_URL = 'https://www.cs.toronto.edu/~kriz/' + CIFAR_FILENAME
 CIFAR_LOCAL_FOLDER = 'cifar-10-batches-py'
 
 
-# @retry()
+@retry(after=after_log(logger, logging.DEBUG))
 def urlretrieve_with_retry(url, filename=None):
     return urllib.request.urlretrieve(url, filename)
 
@@ -67,7 +72,7 @@ def maybe_download(filename, work_directory, source_url):
         temp_file_name, _ = urlretrieve_with_retry(source_url, filepath)
         # shutil.copyfile(temp_file_name, filepath)
         size = os.path.getsize(filepath)
-        print('Successfully downloaded', filename, size, 'bytes.')
+        logger.info('Successfully downloaded', filename, size, 'bytes.')
     return filepath
 
 
@@ -106,7 +111,7 @@ def read_pickle_from_file(filename):
 
 def convert_to_tfrecord(input_files, output_file):
     """Converts a file to TFRecords."""
-    print('Generating %s' % output_file)
+    logger.info('Generating %s' % output_file)
     with tf.python_io.TFRecordWriter(output_file) as record_writer:
         for input_file in input_files:
             data_dict = read_pickle_from_file(input_file)
@@ -123,7 +128,7 @@ def convert_to_tfrecord(input_files, output_file):
 
 
 def main(data_dir):
-    print(f'Download from {CIFAR_DOWNLOAD_URL} and extract to {data_dir}.')
+    logger.info(f'Download from {CIFAR_DOWNLOAD_URL} and extract to {data_dir}.')
     download_and_extract(data_dir)
     file_names = _get_file_names()
     input_dir = os.path.join(data_dir, CIFAR_LOCAL_FOLDER)
@@ -136,7 +141,7 @@ def main(data_dir):
             pass
         # Convert to tf.train.Example and write the to TFRecords.
         convert_to_tfrecord(input_files, output_file)
-    print('Done!')
+    logger.info('Done!')
 
 
 if __name__ == '__main__':
