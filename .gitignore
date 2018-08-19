@@ -100,5 +100,5 @@ ENV/
 # mypy
 .mypy_cache/
 
-# dataset
-cifar-10-data
+# datasets
+cifar10-data
