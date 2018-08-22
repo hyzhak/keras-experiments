@@ -102,3 +102,6 @@ ENV/
 
 # datasets
 cifar10-data
+
+# checkpoints
+checkpoints
